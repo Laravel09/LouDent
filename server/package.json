@@ -1,0 +1,27 @@
+{
+ "name": "loudent-server",
+ "version": "0.1.0",
+ "private": true,
+ "type": "module",
+ "engines": {
+  "node": ">=20.19.0"
+ },
+ "scripts": {
+  "dev": "node --watch src/index.js",
+  "start": "node src/index.js",
+  "seed": "node src/seed.js",
+  "test": "node --test test/*.test.js",
+  "check": "node --check src/index.js && node --check src/app.js && node --check src/seed.js && node --check src/core.js && node --check src/mail.js && node --check src/recovery.js && node --check src/maintenance.js && node --check src/staff-lib.js && node --check scripts/migrate.js && node --check scripts/staff.js && node --check scripts/cleanup-local-data.js && node --check scripts/diagnose.js && node --check scripts/mail-test.js",
+  "migrate": "node scripts/migrate.js",
+  "staff": "node scripts/staff.js",
+  "cleanup:local": "node scripts/cleanup-local-data.js",
+  "diagnose": "node scripts/diagnose.js",
+  "mail:test": "node scripts/mail-test.js"
+ },
+ "dependencies": {
+  "express": "^5.2.0",
+  "mariadb": "^3.4.0",
+  "dotenv": "^17.0.0",
+  "nodemailer": "^6.9.0"
+ }
+}

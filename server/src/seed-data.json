@@ -1,0 +1,352 @@
+{
+  "services": [
+    {
+      "id": "checkup",
+      "name": "Dental Check-up",
+      "duration": 30,
+      "price": 500,
+      "icon": "🔍",
+      "description": "A thorough oral examination to assess your dental health, detect issues early, and plan the right course of treatment.",
+      "involves": [
+        "Full oral cavity examination",
+        "Gum and tissue health assessment",
+        "X-ray review if needed",
+        "Personalized treatment recommendations",
+        "Open Q&A with your dentist"
+      ],
+      "preparation": "No special preparation needed. Bring any previous dental records or X-rays if available."
+    },
+    {
+      "id": "cleaning",
+      "name": "Teeth Cleaning",
+      "duration": 45,
+      "price": 1000,
+      "icon": "✨",
+      "description": "Professional prophylaxis to remove plaque, tartar, and surface stains — leaving your teeth clean, polished, and feeling fresh.",
+      "involves": [
+        "Ultrasonic scaling to remove tartar buildup",
+        "Hand scaling for precision cleaning",
+        "Polishing with professional-grade paste",
+        "Flossing and fluoride rinse"
+      ],
+      "preparation": "Brush your teeth normally before your visit. Avoid a heavy meal right before your appointment."
+    },
+    {
+      "id": "filling",
+      "name": "Tooth Filling",
+      "duration": 40,
+      "price": 1500,
+      "icon": "🦷",
+      "description": "Tooth-colored composite fillings to restore teeth damaged by cavities, restoring both function and natural appearance.",
+      "involves": [
+        "Local anesthesia for your comfort",
+        "Removal of decayed tooth material",
+        "Composite resin placement and shaping",
+        "Bite adjustment and polishing"
+      ],
+      "preparation": "Eat a light meal beforehand — the treated area may be numb for a few hours after the procedure."
+    },
+    {
+      "id": "extraction",
+      "name": "Tooth Extraction",
+      "duration": 40,
+      "price": 1000,
+      "icon": "🪄",
+      "description": "Safe, minimally painful removal of a severely damaged, decayed, or problematic tooth by our experienced dentists.",
+      "involves": [
+        "Pre-extraction clinical assessment",
+        "Local anesthesia administration",
+        "Careful tooth loosening and removal",
+        "Post-extraction care and medication instructions"
+      ],
+      "preparation": "Avoid blood-thinning medications if possible. Arrange for someone to accompany you if sedation is used."
+    },
+    {
+      "id": "whitening",
+      "name": "Teeth Whitening",
+      "duration": 50,
+      "price": 8000,
+      "icon": "⭐",
+      "description": "Professional in-office whitening that safely lightens your enamel by several shades for a brighter, more confident smile.",
+      "involves": [
+        "Pre-treatment shade assessment",
+        "Gum protection and isolation",
+        "Professional-grade whitening gel application",
+        "LED light activation for enhanced results",
+        "Post-treatment care instructions"
+      ],
+      "preparation": "Avoid strongly colored foods and beverages 48 hours before and after treatment. Treat any cavities before whitening."
+    },
+    {
+      "id": "wisdom",
+      "name": "Wisdom Tooth Extraction",
+      "duration": 60,
+      "price": 2500,
+      "icon": "🧠",
+      "description": "Safe removal of impacted or problematic wisdom teeth to relieve pain, prevent crowding, and avoid future complications.",
+      "involves": [
+        "Panoramic X-ray to assess positioning",
+        "Local anesthesia or sedation options",
+        "Surgical extraction with minimal trauma",
+        "Post-operative care kit and instructions"
+      ],
+      "preparation": "Fast for at least 6 hours before sedation. Arrange for someone to accompany you home."
+    },
+    {
+      "id": "partial-dentures",
+      "name": "Partial Dentures",
+      "duration": 45,
+      "price": 6000,
+      "icon": "🦷",
+      "description": "Removable partial dentures designed to replace one or more missing teeth while preserving your remaining natural teeth.",
+      "involves": [
+        "Clinical assessment and impressions",
+        "Custom partial denture fabrication",
+        "Wax try-in for fit and comfort review",
+        "Final fitting and bite adjustments",
+        "Care and maintenance instructions"
+      ],
+      "preparation": "Multiple visits are required. Inform your dentist of any existing health conditions or medications."
+    },
+    {
+      "id": "full-dentures",
+      "name": "Full Dentures",
+      "duration": 60,
+      "price": 15000,
+      "icon": "🦷",
+      "description": "Complete removable dentures for patients who have lost all or most of their natural teeth, restoring appearance and function.",
+      "involves": [
+        "Comprehensive assessment and jaw measurements",
+        "Impressions for both upper and lower arches",
+        "Wax try-in appointments for aesthetics and fit",
+        "Final denture delivery and adjustment",
+        "Follow-up fitting appointments as needed"
+      ],
+      "preparation": "Multiple visits over several weeks are needed. Bring a list of any current medications to your first appointment."
+    },
+    {
+      "id": "pediatric",
+      "name": "Pediatric Dental Care",
+      "duration": 30,
+      "price": 600,
+      "icon": "🧒",
+      "description": "Child-friendly dental check-ups, cleanings, and preventive treatments in a calm environment designed for young patients.",
+      "involves": [
+        "Child-adapted oral examination",
+        "Gentle cleaning and polishing",
+        "Fluoride application if recommended",
+        "Parent education on home care habits"
+      ],
+      "preparation": "Bring your child's dental records if available. Morning appointments are usually best for young children."
+    },
+    {
+      "id": "veneers",
+      "name": "Veneers",
+      "duration": 60,
+      "price": 12000,
+      "icon": "💎",
+      "description": "Thin, custom-made porcelain or composite shells bonded to the front of teeth to improve color, shape, size, or length.",
+      "involves": [
+        "Initial smile assessment and shade selection",
+        "Minimal enamel removal for bonding surface",
+        "Impression or digital scan for fabrication",
+        "Temporary veneers placed while lab fabricates finals",
+        "Permanent veneer bonding and bite check"
+      ],
+      "preparation": "Discuss aesthetic goals with your dentist beforehand. Good oral health is required before veneers are placed."
+    },
+    {
+      "id": "braces-combo",
+      "name": "Braces Consultation & Adjustment",
+      "duration": 30,
+      "price": 1000,
+      "icon": "😁",
+      "description": "Orthodontic consultation, treatment assessment, and scheduled braces adjustment — all in one visit.",
+      "involves": [
+        "Orthodontic examination and progress review",
+        "Wire removal and replacement",
+        "Bracket checks and tightening as needed",
+        "Photos and documentation of treatment progress",
+        "Next adjustment scheduling"
+      ],
+      "preparation": "Brush thoroughly before your visit. Eat a soft meal beforehand — teeth may feel tender after adjustment."
+    },
+    {
+      "id": "braces-install",
+      "name": "Braces Installation",
+      "duration": 90,
+      "price": 40000,
+      "icon": "🦷",
+      "description": "Initial placement of orthodontic braces to gradually align and straighten the teeth. Includes both upper and lower arches.",
+      "involves": [
+        "Initial orthodontic consultation and full assessment",
+        "Placement of metal brackets on upper and lower arches",
+        "Orthodontic wires and ties",
+        "Patient education on care and maintenance",
+        "Scheduled follow-up adjustment appointments",
+        "Final retainer quoted separately after treatment"
+      ],
+      "preparation": "An initial consultation is required before installation. Additional procedures (X-rays, fillings, extractions) may be needed and are quoted separately."
+    },
+    {
+      "id": "retainer",
+      "name": "Retainer",
+      "duration": 30,
+      "price": 5000,
+      "icon": "⭕",
+      "description": "A custom-made retainer to maintain your teeth alignment after braces treatment is complete.",
+      "involves": [
+        "Post-braces assessment and impressions",
+        "Custom retainer fabrication",
+        "Fitting and bite check",
+        "Instructions on wear schedule and maintenance"
+      ],
+      "preparation": "Retainer is placed after braces are removed. Bring any previous orthodontic records to your appointment."
+    }
+  ],
+  "dentists": [
+    {
+      "id": "santos",
+      "name": "Dr. Maria Santos",
+      "title": "DMD",
+      "specialty": "General & Cosmetic Dentistry",
+      "experience": 8,
+      "bio": "Dr. Santos is a dedicated general and cosmetic dentist with 8 years of experience transforming smiles across Cebu City. She earned her DMD from the University of Santo Tomas and has completed advanced training in cosmetic dentistry and minimally invasive procedures. Known for her gentle approach and thorough explanations, she makes every patient feel at ease.",
+      "availableDays": [
+        "Monday",
+        "Tuesday",
+        "Thursday",
+        "Friday"
+      ],
+      "hours": "9:00 AM – 5:00 PM",
+      "services": [
+        "Dental Check-up",
+        "Teeth Cleaning",
+        "Tooth Filling",
+        "Tooth Extraction",
+        "Teeth Whitening",
+        "Wisdom Tooth Extraction",
+        "Partial Dentures",
+        "Full Dentures",
+        "Pediatric Dental Care",
+        "Veneers"
+      ],
+      "nextAvailable": "See live availability",
+      "photo": "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=300&h=300&fit=crop&auto=format"
+    },
+    {
+      "id": "reyes",
+      "name": "Dr. Adrian Reyes",
+      "title": "DMD, MOrth",
+      "specialty": "Orthodontics",
+      "experience": 6,
+      "bio": "Dr. Reyes is an experienced orthodontist specializing in braces, clear aligners, and bite correction. He completed his Masters in Orthodontics from the University of the Philippines Manila and has treated hundreds of patients from teenagers to adults. He combines clinical precision with a warm, patient-centered style to deliver results that last a lifetime.",
+      "availableDays": [
+        "Monday",
+        "Wednesday",
+        "Friday",
+        "Saturday"
+      ],
+      "hours": "9:00 AM – 5:00 PM",
+      "services": [
+        "Braces Consultation & Adjustment",
+        "Braces Installation",
+        "Retainer",
+        "Dental Check-up",
+        "Tooth Extraction"
+      ],
+      "nextAvailable": "See live availability",
+      "photo": "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=300&h=300&fit=crop&auto=format"
+    }
+  ],
+  "availability": {
+    "santos": [
+      {
+        "day": "Monday",
+        "available": true,
+        "start": "9:00 AM",
+        "end": "5:00 PM"
+      },
+      {
+        "day": "Tuesday",
+        "available": true,
+        "start": "9:00 AM",
+        "end": "5:00 PM"
+      },
+      {
+        "day": "Wednesday",
+        "available": false,
+        "start": "9:00 AM",
+        "end": "5:00 PM"
+      },
+      {
+        "day": "Thursday",
+        "available": true,
+        "start": "9:00 AM",
+        "end": "5:00 PM"
+      },
+      {
+        "day": "Friday",
+        "available": true,
+        "start": "9:00 AM",
+        "end": "3:00 PM"
+      },
+      {
+        "day": "Saturday",
+        "available": false,
+        "start": "9:00 AM",
+        "end": "5:00 PM"
+      },
+      {
+        "day": "Sunday",
+        "available": false,
+        "start": "9:00 AM",
+        "end": "5:00 PM"
+      }
+    ],
+    "reyes": [
+      {
+        "day": "Monday",
+        "available": true,
+        "start": "9:00 AM",
+        "end": "5:00 PM"
+      },
+      {
+        "day": "Tuesday",
+        "available": false,
+        "start": "9:00 AM",
+        "end": "5:00 PM"
+      },
+      {
+        "day": "Wednesday",
+        "available": true,
+        "start": "9:00 AM",
+        "end": "5:00 PM"
+      },
+      {
+        "day": "Thursday",
+        "available": false,
+        "start": "9:00 AM",
+        "end": "5:00 PM"
+      },
+      {
+        "day": "Friday",
+        "available": true,
+        "start": "9:00 AM",
+        "end": "5:00 PM"
+      },
+      {
+        "day": "Saturday",
+        "available": true,
+        "start": "9:00 AM",
+        "end": "3:00 PM"
+      },
+      {
+        "day": "Sunday",
+        "available": false,
+        "start": "9:00 AM",
+        "end": "5:00 PM"
+      }
+    ]
+  }
+}
