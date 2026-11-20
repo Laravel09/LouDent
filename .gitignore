@@ -3,6 +3,9 @@ dist/
 build/
 .cache/
 .vite/
+coverage/
+playwright-report/
+test-results/
 # Private environment files: never commit or share
 .env
 .env.*
@@ -12,10 +15,18 @@ server/.env
 server/.env.*
 !server/.env.example
 !server/.env.test.example
-# Database backups and local reports must never be committed (keep backups OUTSIDE the project)
+supabase/.env
+supabase/functions/.env
+supabase/.temp/
+supabase/.branches/
+# Database backups / exports must never be committed (keep them OUTSIDE the project)
 *.sql
 !server/database/*.sql
 !server/database/migrations/*.sql
+!supabase/migrations/*.sql
+!supabase/tests/*.sql
+!db-tests/*.sql
+migration-tools/output/
 server/reports/
 *.tsbuildinfo
 *.log

@@ -18,7 +18,8 @@ import {
   setUnauthorizedHandler,
 } from "./api/client"
 import { CatalogProvider } from "./api/catalog"
-import { supabase } from "./lib/supabase"
+import { supabase, supabaseConfigError } from "./lib/supabase"
+import { takeEmailLink, redeemEmailLink } from "./lib/authLinks"
 
 import { PatientLayout, AdminLayout } from "./components/layouts"
 
@@ -209,40 +210,6 @@ function ConnectionBanner({
   )
 }
 
-// Supabase Auth handles email verification and password reset via redirect URLs.
-// The auth callback is processed at /auth/callback. For Supabase, the tokens are
-// handled automatically by the Supabase client library via hash fragments.
-// Legacy /?verify=TOKEN and /?reset=TOKEN links are still supported for backward compat.
-function takeEmailLinkToken(): { kind: "verify" | "reset"; token: string } | null {
-  try {
-    // Check for Supabase Auth callback (hash-based)
-    const hash = window.location.hash
-    if (hash && (hash.includes('type=recovery') || hash.includes('type=signup'))) {
-      // Supabase client library will process this automatically
-      return null
-    }
-    // Check for legacy query-based tokens
-    const query = new URLSearchParams(window.location.search)
-    const verify = query.get("verify")
-    const reset = query.get("reset")
-    const type = query.get("type")
-    // Check for /auth/callback with type=recovery
-    if (window.location.pathname === '/auth/callback' && type === 'recovery') {
-      // Supabase has already set up the session; go to reset password
-      window.history.replaceState(null, "", "/")
-      return { kind: "reset" as const, token: "supabase-session" }
-    }
-    const found = verify
-      ? { kind: "verify" as const, token: verify }
-      : reset
-        ? { kind: "reset" as const, token: reset }
-        : null
-    if (found) window.history.replaceState(null, "", window.location.pathname)
-    return found
-  } catch {
-    return null
-  }
-}
 
 function VerifyEmailBanner({ user }: { user: ApiUser }) {
   const [note, setNote] = useState<string | null>(null)
@@ -293,7 +260,7 @@ export default function App() {
   const role: Role = user?.role ?? "none"
   const activeDentistId = user?.role === "dentist" ? user.dentistId : null
   const [sessionNotice, setSessionNotice] = useState<string | null>(null)
-  const [emailLink] = useState(takeEmailLinkToken)
+  const [emailLink] = useState(takeEmailLink)
 
   const [screen, setScreen] = useState<Screen>("landing")
   const [params, setParams] = useState<any>({})
@@ -390,68 +357,104 @@ export default function App() {
         : [saved, ...current],
     )
 
-  // Initial load: who am I (Supabase session) + public catalog.
+  // Initial load: redeem any email link (verify / reset), check Supabase session, and load public catalog.
   useEffect(() => {
     let cancelled = false
     ;(async () => {
       try {
-        // Check for existing Supabase session
-        const { data: { session } } = await supabase.auth.getSession()
-        if (session && !cancelled) {
-          const current = await api.me()
-          setUser(current)
-          setScreen(
-            current.role === "patient" ? "patient-home" : "admin-dashboard",
-          )
+        if (emailLink) {
+          if (emailLink.kind === "verify") {
+            try {
+              await redeemEmailLink(emailLink)
+              if (!cancelled) {
+                setParams({ token: "verified" })
+                setScreen("verify-email")
+              }
+            } catch (err) {
+              if (!cancelled) {
+                setParams({ token: `error:${errorMessage(err)}` })
+                setScreen("verify-email")
+              }
+            }
+          } else {
+            try {
+              await redeemEmailLink(emailLink)
+              if (!cancelled) {
+                setParams({ token: "ready" })
+                setScreen("reset-password")
+              }
+            } catch (err) {
+              if (!cancelled) {
+                setParams({ token: `error:${errorMessage(err)}` })
+                setScreen("reset-password")
+              }
+            }
+          }
+        }
+
+        if (!supabaseConfigError) {
+          const {
+            data: { session },
+          } = await supabase.auth.getSession()
+          if (session && !cancelled) {
+            const current = await api.me()
+            setUser(current)
+            if (!emailLink) {
+              setScreen(
+                current.role === "patient" ? "patient-home" : "admin-dashboard",
+              )
+            }
+          }
         }
       } catch {
         // Not logged in; network errors are shown by the catalog banner
       } finally {
         if (!cancelled) {
-          if (emailLink) {
-            setParams({ token: emailLink.token })
-            setScreen(emailLink.kind === "verify" ? "verify-email" : "reset-password")
-          }
           setAuthReady(true)
         }
       }
     })()
     loadCatalog()
 
+    if (supabaseConfigError) {
+      return () => {
+        cancelled = true
+      }
+    }
+
     // Listen for Supabase auth state changes (email verification, password recovery)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'SIGNED_IN' && session) {
-          try {
-            const current = await api.me()
-            setUser(current)
-          } catch {
-            // ignore
-          }
-        } else if (event === 'SIGNED_OUT') {
-          setUser(null)
-          setAppointments([])
-          setBooking(EMPTY_BOOKING)
-        } else if (event === 'PASSWORD_RECOVERY') {
-          setParams({ token: 'supabase-session' })
-          setScreen('reset-password')
-        } else if (event === 'USER_UPDATED') {
-          // Refresh user data (e.g., after email verification)
-          try {
-            const current = await api.me()
-            setUser(current)
-          } catch {
-            // ignore
-          }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setParams({ token: "ready" })
+        setScreen("reset-password")
+      } else if (event === "SIGNED_IN" && session) {
+        try {
+          const current = await api.me()
+          setUser(current)
+        } catch {
+          // ignore
+        }
+      } else if (event === "SIGNED_OUT") {
+        setUser(null)
+        setAppointments([])
+        setBooking(EMPTY_BOOKING)
+      } else if (event === "USER_UPDATED") {
+        try {
+          const current = await api.me()
+          setUser(current)
+        } catch {
+          // ignore
         }
       }
-    )
+    })
 
     return () => {
       cancelled = true
       subscription.unsubscribe()
     }
-  }, [loadCatalog])
+  }, [loadCatalog, emailLink])
 
   // Appointments follow the signed-in user.
   useEffect(() => {

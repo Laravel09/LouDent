@@ -226,7 +226,11 @@ export function ResetPasswordScreen({
   const [password, setPassword] = useState("")
   const [confirm, setConfirm] = useState("")
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [formError, setFormError] = useState<{ message: string; stale: boolean } | null>(null)
+  const [formError, setFormError] = useState<{ message: string; stale: boolean } | null>(() =>
+    token.startsWith("error:")
+      ? { message: token.slice("error:".length), stale: true }
+      : null,
+  )
   const [done, setDone] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -316,6 +320,11 @@ export function VerifyEmailScreen({
   useEffect(() => {
     if (submitted.current === token) return
     submitted.current = token
+    if (token.startsWith("error:")) {
+      setMessage(token.slice("error:".length))
+      setState("failed")
+      return
+    }
     ;(async () => {
       try {
         const result = await api.verifyEmail(token)

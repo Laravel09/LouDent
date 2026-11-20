@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "check:env": "node scripts/check-env.mjs",
-    "test": "vitest run",
+    "test": "vitest run src/",
     "test:db": "node --test db-tests/*.test.mjs",
     "test:e2e": "playwright test",
     "format": "oxfmt"
@@ -32,10 +32,14 @@
     "tailwindcss": "^4.0.0",
     "typescript": "^5.7.0",
     "vite": "^8.0.5",
-    "vitest": "^3.0.0"
+    "vitest": "^5.1.1"
   },
   "description": "LouDent dental appointment system - React + Supabase (legacy Express/MariaDB reference kept in ./server)",
   "engines": {
     "node": ">=20.19.0"
+  },
+  "allowScripts": {
+    "@embedded-postgres/windows-x64@17.5.0-beta.15": true,
+    "esbuild@0.28.2": true
   }
 }
