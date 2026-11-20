@@ -58,7 +58,15 @@ function assertConfigured() {
 function raiseRpcError(error: any, fallback = "Request could not be completed."): never {
   const hint: string | undefined = typeof error?.hint === "string" ? error.hint : undefined
   const pgCode: string | undefined = typeof error?.code === "string" ? error.code : undefined
-  const message = typeof error?.message === "string" && error.message ? error.message : fallback
+  let message = typeof error?.message === "string" && error.message ? error.message : fallback
+
+  if (pgCode === "PGRST205" || pgCode === "PGRST202") {
+    throw new ApiError(
+      503,
+      "Connected to Supabase, but the LouDent database migrations have not been applied yet. Run the 5 migrations in supabase/migrations/ (see docs/DATABASE_MIGRATION.md).",
+      { code: pgCode },
+    )
+  }
 
   let status = 400
   if (hint === "NOT_AUTHENTICATED" || pgCode === "PGRST301") {

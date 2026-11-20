@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "check:env": "node scripts/check-env.mjs",
+    "verify:supabase": "node scripts/verify-supabase-connection.mjs",
     "test": "vitest run src/",
     "test:db": "node --test db-tests/*.test.mjs",
     "test:e2e": "playwright test",

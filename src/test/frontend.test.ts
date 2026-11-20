@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest"
+import { supabase, supabaseConfigError } from "../lib/supabase"
 import {
   emailLooksValid,
   passwordProblem,
@@ -87,5 +88,11 @@ describe("LouDent frontend validation & Supabase client mappers", () => {
     })
     expect(errorMessage(err)).toBe("Verify your email")
     expect(err.code).toBe("EMAIL_NOT_VERIFIED")
+  })
+
+  it("initializes the Supabase client cleanly with configured publishable credentials", () => {
+    expect(supabaseConfigError).toBeNull()
+    expect(supabase).toBeDefined()
+    expect(typeof supabase.auth.getSession).toBe("function")
   })
 })
