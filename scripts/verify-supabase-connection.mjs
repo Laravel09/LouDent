@@ -102,14 +102,19 @@ const LOUDENT_TABLES = [
 let presentCount = 0
 for (const table of LOUDENT_TABLES) {
   const { data, error, status } = await supabase.from(table).select('*').limit(1)
-  if (error) {
+  if (error && error.code === '42501') {
+    presentCount++
+    console.log(
+      `  ${table.padEnd(22)} : PRESENT & RLS-PROTECTED (HTTP ${status} 42501: anon access denied as designed)`
+    )
+  } else if (error) {
     console.log(
       `  ${table.padEnd(22)} : NOT YET APPLIED (HTTP ${status} ${error.code || ''}: ${error.message})`
     )
   } else {
     presentCount++
     console.log(
-      `  ${table.padEnd(22)} : PRESENT (HTTP ${status}, sample rows visible to anon: ${data?.length ?? 0})`
+      `  ${table.padEnd(22)} : PRESENT (HTTP ${status}, public catalogue rows visible: ${data?.length ?? 0})`
     )
   }
 }

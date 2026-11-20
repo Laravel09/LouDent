@@ -75,10 +75,10 @@ If you have existing MariaDB appointments and users to migrate:
    ```bash
    node migration-tools/import-supabase.mjs
    ```
-3. When ready to import into the target project (server-side terminal only):
+3. When ready to import into the target project (server-side terminal only, using the rotated secret key `loudent_backend_rotated`):
    ```bash
    SUPABASE_URL=https://qlsfeqofszmtdkdedkqz.supabase.co \
-   SUPABASE_SECRET_KEY=sb_secret_... \
+   SUPABASE_SECRET_KEYS='{"loudent_backend_rotated":"sb_secret_..."}' \
    LOUDENT_CONFIRM_IMPORT=YES \
    node migration-tools/import-supabase.mjs --execute
    ```

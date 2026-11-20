@@ -51,9 +51,16 @@ async function main() {
   }
 
   const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
-  const secretKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY
+  let secretKey = process.env.SUPABASE_SECRET_KEY || null
+  if (!secretKey && process.env.SUPABASE_SECRET_KEYS) {
+    try {
+      secretKey = JSON.parse(process.env.SUPABASE_SECRET_KEYS).loudent_backend_rotated || null
+    } catch {
+      secretKey = null
+    }
+  }
   if (!url || !secretKey) {
-    console.error('SUPABASE_URL and SUPABASE_SECRET_KEY (server-side only) are required for --execute.')
+    console.error('SUPABASE_URL and SUPABASE_SECRET_KEYS["loudent_backend_rotated"] (or SUPABASE_SECRET_KEY, server-side only) are required for --execute.')
     process.exit(1)
   }
 
