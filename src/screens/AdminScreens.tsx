@@ -630,6 +630,7 @@ export function ManageAvailabilityScreen({
   const [saveError, setSaveError] = useState<string | null>(null)
   const [validationErrors, setValidationErrors] =
     useState<Record<string, string>>({})
+  const [clearAllOpen, setClearAllOpen] = useState(false)
 
   // While not editing, always show what the server currently has (other tabs/browsers may change it).
   const serverAvailability = allAvailability[activeDentistId]
@@ -728,19 +729,41 @@ export function ManageAvailabilityScreen({
     // existing Pending or Confirmed appointment and explains which one.
     setSaving(true)
     setSaveError(null)
-    const failure = await onSaveSchedule(
-      activeDentistId,
-      availability,
-      blockedDates,
-    )
-    setSaving(false)
-    if (failure) {
-      setSaveError(failure)
-      return
+    setSaved(false)
+    try {
+      const failure = await onSaveSchedule(
+        activeDentistId,
+        availability,
+        blockedDates,
+      )
+      if (failure) {
+        setSaveError(failure)
+        // A schedule-save failure leaves all staged changes unsaved, so keep
+        // edit mode open and let the dentist correct the values. A blocked-date
+        // failure can happen after weekly hours were saved; the parent refreshes
+        // server state in that case, so leave edit mode to resync the form.
+        const weeklyHoursWereSaved = failure.startsWith(
+          "Weekly hours were saved, but the blocked dates were not:",
+        )
+        if (weeklyHoursWereSaved) {
+          setEditing(false)
+          setNewBlockedDate("")
+        }
+        return
+      }
+      setEditing(false)
+      setNewBlockedDate("")
+      setSaved(true)
+      window.setTimeout(() => setSaved(false), 4000)
+    } catch (error) {
+      setSaveError(
+        error instanceof Error
+          ? error.message
+          : "Availability could not be saved. Please try again.",
+      )
+    } finally {
+      setSaving(false)
     }
-    setEditing(false)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 4000)
   }
 
   const timeOptions = [
@@ -758,22 +781,67 @@ export function ManageAvailabilityScreen({
     "6:00 PM",
   ]
 
+  const todayInManila = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Manila",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date())
+
+  const formatBlockedDate = (date: string) => {
+    const parsed = new Date(`${date}T12:00:00`)
+    if (Number.isNaN(parsed.getTime())) return date
+    return new Intl.DateTimeFormat("en-PH", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      timeZone: "Asia/Manila",
+    }).format(parsed)
+  }
+
+  const resetEditing = () => {
+    setEditing(false)
+    setAvailability(serverAvailability ?? WEEKLY_AVAILABILITY)
+    setBlockedDates(serverBlocked ?? [])
+    setNewBlockedDate("")
+    setSaveError(null)
+    setValidationErrors({})
+    setClearAllOpen(false)
+  }
+
   return (
-    <div className="mx-auto w-full max-w-5xl">
-      <div className="flex items-start justify-between mb-6">
-        <PageHeader
-          title="Manage Availability"
-          description="Set your weekly working schedule."
-        />
-        {!editing && (
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => setEditing(true)}
-          >
-            {icons.edit} Edit Schedule
-          </Button>
-        )}
+    <div className="mx-auto w-full max-w-6xl">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold text-navy">Availability</h1>
+          <p className="mt-1 text-sm text-muted">
+            Manage your weekly working schedule and unavailable dates.
+          </p>
+        </div>
+        <div className="flex shrink-0 flex-wrap gap-2 sm:pt-1">
+          {!editing ? (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                setSaved(false)
+                setSaveError(null)
+                setEditing(true)
+              }}
+            >
+              {icons.edit} Edit Schedule
+            </Button>
+          ) : (
+            <>
+              <Button variant="secondary" size="sm" disabled={saving} onClick={resetEditing}>
+                Cancel
+              </Button>
+              <Button variant="primary" size="sm" disabled={saving} onClick={handleSave}>
+                {saving ? "Saving…" : "Save Changes"}
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       {saved && (
@@ -790,256 +858,269 @@ export function ManageAvailabilityScreen({
         </div>
       )}
 
-      <div className="overflow-hidden rounded-2xl border border-border bg-white">
-        {availability.map((day, index) => {
-          const breakEnabled = Boolean(day.breakStart || day.breakEnd)
-          return (
-            <div
-              key={day.day}
-              className={`px-5 py-5 sm:px-6 ${
-                index < availability.length - 1 ? "border-b border-border" : ""
-              }`}
-            >
-              <div className="grid gap-4 md:grid-cols-[150px_1fr] md:items-start">
-                <div className="flex min-h-10 items-center gap-3">
-                  {editing ? (
-                    <button
-                      type="button"
-                      aria-label={`${
-                        day.available ? "Disable" : "Enable"
-                      } ${day.day}`}
-                      aria-pressed={day.available}
-                      onClick={() => toggle(day.day)}
-                      className={`relative inline-flex h-6 w-10 flex-shrink-0 items-center rounded-full transition-colors ${
-                        day.available ? "bg-blue" : "bg-surface-2"
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${
-                          day.available ? "translate-x-5" : "translate-x-1"
-                        }`}
-                      />
-                    </button>
-                  ) : (
-                    <span
-                      className={`h-2.5 w-2.5 rounded-full ${
-                        day.available
-                          ? "bg-success"
-                          : "border border-border bg-surface-2"
-                      }`}
-                    />
-                  )}
-                  <span className="text-sm font-semibold text-navy">
-                    {day.day}
-                  </span>
-                </div>
+      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.12fr)_minmax(340px,0.88fr)]">
+        {/* LEFT: Weekly working schedule */}
+        <section className="min-w-0 overflow-hidden rounded-2xl border border-border bg-white">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4 sm:px-6">
+            <div>
+              <h2 className="font-semibold text-navy">Weekly Working Schedule</h2>
+              <p className="mt-1 text-xs text-muted">Your regular working hours for patient bookings.</p>
+            </div>
+            <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-success">
+              {availability.filter((day) => day.available).length} Working Days
+            </span>
+          </div>
 
-                {!day.available ? (
-                  <p className="py-2 text-sm italic text-muted">Unavailable</p>
-                ) : editing ? (
-                  <div className="space-y-3">
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <label className="text-xs font-semibold text-muted">
-                        Shift starts
-                        <select
-                          aria-label={`${day.day} shift start`}
-                          value={day.start}
-                          onChange={(event) =>
-                            updateTime(day.day, "start", event.target.value)
-                          }
-                          className="mt-1.5 w-full min-w-0 rounded-lg border border-border bg-white px-3 py-2.5 text-sm font-medium text-navy focus:outline-none focus:ring-2 focus:ring-blue/30"
+          <div className="divide-y divide-border">
+            {availability.map((day) => {
+              const breakEnabled = Boolean(day.breakStart || day.breakEnd)
+              return (
+                <div key={day.day} className="px-5 py-4 sm:px-6">
+                  <div className="grid min-w-0 gap-3 md:grid-cols-[minmax(105px,0.7fr)_minmax(0,1.5fr)] md:items-start">
+                    <div className="flex min-h-10 items-center gap-3">
+                      {editing ? (
+                        <button
+                          type="button"
+                          aria-label={`${day.available ? "Disable" : "Enable"} ${day.day}`}
+                          aria-pressed={day.available}
+                          onClick={() => toggle(day.day)}
+                          className={`relative inline-flex h-6 w-10 shrink-0 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue focus-visible:ring-offset-2 ${day.available ? "bg-blue" : "bg-surface-2"}`}
                         >
-                          {timeOptions.map((time) => (
-                            <option key={time}>{time}</option>
-                          ))}
-                        </select>
-                      </label>
-                      <label className="text-xs font-semibold text-muted">
-                        Shift ends
-                        <select
-                          aria-label={`${day.day} shift end`}
-                          value={day.end}
-                          onChange={(event) =>
-                            updateTime(day.day, "end", event.target.value)
-                          }
-                          className="mt-1.5 w-full min-w-0 rounded-lg border border-border bg-white px-3 py-2.5 text-sm font-medium text-navy focus:outline-none focus:ring-2 focus:ring-blue/30"
-                        >
-                          {timeOptions.map((time) => (
-                            <option key={time}>{time}</option>
-                          ))}
-                        </select>
-                      </label>
+                          <span className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${day.available ? "translate-x-5" : "translate-x-1"}`} />
+                        </button>
+                      ) : (
+                        <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${day.available ? "bg-success" : "border border-border bg-surface-2"}`} />
+                      )}
+                      <span className="text-sm font-semibold text-navy">{day.day}</span>
                     </div>
 
-                    {breakEnabled ? (
-                      <div className="rounded-xl bg-surface p-3">
-                        <div className="mb-2 flex items-center justify-between gap-3">
-                          <span className="text-xs font-semibold text-navy">
-                            Break time
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => toggleBreak(day.day, false)}
-                            className="text-xs font-medium text-danger hover:underline"
-                          >
-                            Remove break
+                    {!day.available ? (
+                      <div className="flex min-h-10 items-center">
+                        <span className="rounded-full bg-surface px-3 py-1 text-xs italic text-muted">Unavailable</span>
+                      </div>
+                    ) : editing ? (
+                      <div className="min-w-0 space-y-3">
+                        <div className="grid min-w-0 gap-2 sm:grid-cols-2">
+                          <label className="min-w-0 text-xs font-semibold text-muted">
+                            Shift starts
+                            <select
+                              aria-label={`${day.day} shift start`}
+                              value={day.start}
+                              onChange={(event) => updateTime(day.day, "start", event.target.value)}
+                              className="mt-1.5 w-full min-w-0 rounded-lg border border-border bg-white px-3 py-2.5 text-sm font-medium text-navy focus:outline-none focus:ring-2 focus:ring-blue/30"
+                            >
+                              {timeOptions.map((time) => <option key={time}>{time}</option>)}
+                            </select>
+                          </label>
+                          <label className="min-w-0 text-xs font-semibold text-muted">
+                            Shift ends
+                            <select
+                              aria-label={`${day.day} shift end`}
+                              value={day.end}
+                              onChange={(event) => updateTime(day.day, "end", event.target.value)}
+                              className="mt-1.5 w-full min-w-0 rounded-lg border border-border bg-white px-3 py-2.5 text-sm font-medium text-navy focus:outline-none focus:ring-2 focus:ring-blue/30"
+                            >
+                              {timeOptions.map((time) => <option key={time}>{time}</option>)}
+                            </select>
+                          </label>
+                        </div>
+                        {breakEnabled ? (
+                          <div className="rounded-xl bg-surface p-3">
+                            <div className="mb-2 flex items-center justify-between gap-3">
+                              <span className="text-xs font-semibold text-navy">Break time</span>
+                              <button type="button" onClick={() => toggleBreak(day.day, false)} className="text-xs font-medium text-danger hover:underline">
+                                Remove break
+                              </button>
+                            </div>
+                            <div className="grid min-w-0 gap-2 sm:grid-cols-2">
+                              <label className="min-w-0 text-xs font-semibold text-muted">
+                                Break starts
+                                <select
+                                  aria-label={`${day.day} break start`}
+                                  value={day.breakStart ?? ""}
+                                  onChange={(event) => updateTime(day.day, "breakStart", event.target.value)}
+                                  className="mt-1.5 w-full min-w-0 rounded-lg border border-border bg-white px-3 py-2.5 text-sm font-medium text-navy"
+                                >
+                                  {timeOptions.map((time) => <option key={time}>{time}</option>)}
+                                </select>
+                              </label>
+                              <label className="min-w-0 text-xs font-semibold text-muted">
+                                Break ends
+                                <select
+                                  aria-label={`${day.day} break end`}
+                                  value={day.breakEnd ?? ""}
+                                  onChange={(event) => updateTime(day.day, "breakEnd", event.target.value)}
+                                  className="mt-1.5 w-full min-w-0 rounded-lg border border-border bg-white px-3 py-2.5 text-sm font-medium text-navy"
+                                >
+                                  {timeOptions.map((time) => <option key={time}>{time}</option>)}
+                                </select>
+                              </label>
+                            </div>
+                          </div>
+                        ) : (
+                          <button type="button" onClick={() => toggleBreak(day.day, true)} className="text-xs font-medium text-blue hover:underline">
+                            + Add break time
                           </button>
-                        </div>
-                        <div className="grid gap-3 sm:grid-cols-2">
-                          <label className="text-xs font-semibold text-muted">
-                            Break starts
-                            <select
-                              aria-label={`${day.day} break start`}
-                              value={day.breakStart ?? ""}
-                              onChange={(event) =>
-                                updateTime(
-                                  day.day,
-                                  "breakStart",
-                                  event.target.value,
-                                )
-                              }
-                              className="mt-1.5 w-full min-w-0 rounded-lg border border-border bg-white px-3 py-2.5 text-sm font-medium text-navy"
-                            >
-                              {timeOptions.map((time) => (
-                                <option key={time}>{time}</option>
-                              ))}
-                            </select>
-                          </label>
-                          <label className="text-xs font-semibold text-muted">
-                            Break ends
-                            <select
-                              aria-label={`${day.day} break end`}
-                              value={day.breakEnd ?? ""}
-                              onChange={(event) =>
-                                updateTime(
-                                  day.day,
-                                  "breakEnd",
-                                  event.target.value,
-                                )
-                              }
-                              className="mt-1.5 w-full min-w-0 rounded-lg border border-border bg-white px-3 py-2.5 text-sm font-medium text-navy"
-                            >
-                              {timeOptions.map((time) => (
-                                <option key={time}>{time}</option>
-                              ))}
-                            </select>
-                          </label>
-                        </div>
+                        )}
                       </div>
                     ) : (
+                      <div className="flex min-h-10 flex-wrap items-center gap-x-2 gap-y-1 rounded-xl bg-surface px-3 py-2.5 text-sm text-navy">
+                        <span className="font-medium">{day.start} – {day.end}</span>
+                        {day.breakStart && day.breakEnd && (
+                          <span className="text-xs text-muted">Break {day.breakStart} – {day.breakEnd}</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  {validationErrors[day.day] && (
+                    <p role="alert" className="mt-2 text-xs text-danger md:ml-[calc(35%+0.75rem)]">
+                      {validationErrors[day.day]}
+                    </p>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+          <div className="border-t border-border bg-surface/60 px-5 py-3 sm:px-6">
+            <p className="text-xs leading-relaxed text-muted">
+              Changes to working hours are checked against existing pending and confirmed appointments before they are saved.
+            </p>
+          </div>
+        </section>
+
+        {/* RIGHT: Date blocking and existing blocked dates */}
+        <div className="flex min-w-0 flex-col gap-5">
+          <section className="rounded-2xl border border-border bg-white p-5 sm:p-6">
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <h2 className="font-semibold text-navy">Manage Unavailable Dates</h2>
+                <p className="mt-1 text-xs leading-relaxed text-muted">
+                  Block specific dates when you are not available, without changing your weekly schedule.
+                </p>
+              </div>
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-tint text-blue">
+                {icons.availability}
+              </span>
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <label className="min-w-0 flex-1">
+                <span className="sr-only">Date to block</span>
+                <input
+                  aria-label="Date to block"
+                  type="date"
+                  min={todayInManila}
+                  disabled={!editing || saving}
+                  value={newBlockedDate}
+                  onChange={(event) => setNewBlockedDate(event.target.value)}
+                  className="w-full min-w-0 rounded-xl border border-border bg-white px-3 py-3 text-sm text-navy outline-none transition focus:border-blue focus:ring-2 focus:ring-blue/15 disabled:cursor-not-allowed disabled:bg-surface disabled:text-muted"
+                />
+              </label>
+              <Button
+                variant="primary"
+                disabled={!editing || saving || !newBlockedDate || blockedDates.includes(newBlockedDate) || newBlockedDate < todayInManila}
+                onClick={() => {
+                  setBlockedDates((dates) => [...dates, newBlockedDate].sort())
+                  setNewBlockedDate("")
+                  setSaveError(null)
+                }}
+              >
+                + Add Date
+              </Button>
+            </div>
+            {!editing && (
+              <p className="mt-3 rounded-lg bg-surface px-3 py-2 text-xs text-muted">
+                Select <span className="font-semibold text-navy">Edit Schedule</span> to add or remove blocked dates.
+              </p>
+            )}
+            {editing && (
+              <p className="mt-3 text-xs text-muted">
+                Dates with pending or confirmed appointments cannot be blocked.
+              </p>
+            )}
+          </section>
+
+          <section className="min-w-0 rounded-2xl border border-border bg-white p-5 sm:p-6">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="font-semibold text-navy">Existing Unavailable Dates</h2>
+                <p className="mt-1 text-xs text-muted">Dates you have already blocked.</p>
+              </div>
+              <span className="rounded-full bg-blue-tint px-3 py-1 text-xs font-semibold text-blue">
+                {blockedDates.length} {blockedDates.length === 1 ? "date" : "dates"}
+              </span>
+            </div>
+
+            {blockedDates.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-border bg-surface/60 px-4 py-8 text-center">
+                <span className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-blue-tint text-blue">
+                  {icons.availability}
+                </span>
+                <p className="text-sm font-medium text-navy">No unavailable dates</p>
+                <p className="mt-1 text-xs text-muted">Dates you block will appear here.</p>
+              </div>
+            ) : (
+              <ul className="divide-y divide-border">
+                {[...blockedDates].sort().map((date) => (
+                  <li key={date} className="flex min-w-0 items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-surface text-muted">
+                        {icons.availability}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-navy">{formatBlockedDate(date)}</p>
+                        <p className="text-xs text-muted">{date}</p>
+                      </div>
+                    </div>
+                    {editing && (
                       <button
                         type="button"
-                        onClick={() => toggleBreak(day.day, true)}
-                        className="text-sm font-medium text-blue hover:underline"
+                        aria-label={`Remove blocked date ${date}`}
+                        onClick={() => setBlockedDates((dates) => dates.filter((item) => item !== date))}
+                        className="shrink-0 rounded-lg px-3 py-2 text-xs font-semibold text-danger transition hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue"
                       >
-                        + Add break time
+                        Remove
                       </button>
                     )}
-                  </div>
-                ) : (
-                  <div className="rounded-xl bg-surface px-4 py-3 text-sm text-navy">
-                    <span className="font-medium">
-                      {day.start}–{day.end}
-                    </span>
-                    {day.breakStart && day.breakEnd && (
-                      <span className="ml-2 text-muted">
-                        · Break {day.breakStart}–{day.breakEnd}
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
-              {validationErrors[day.day] && (
-                <p
-                  role="alert"
-                  className="mt-3 text-xs text-danger md:ml-[166px]"
-                >
-                  {validationErrors[day.day]}
-                </p>
-              )}
-            </div>
-          )
-        })}
-      </div>
-
-      <div className="mt-6 rounded-2xl border border-border bg-white p-5">
-        <h2 className="font-semibold text-navy">Unavailable Dates</h2>
-        <p className="mb-4 mt-1 text-xs text-muted">
-          Block leave days or clinic closures without changing your weekly
-          schedule.
-        </p>
-        {editing && (
-          <div className="mb-4 flex flex-col gap-2 sm:flex-row">
-            <input
-              aria-label="Date to block"
-              type="date"
-              min={new Date().toISOString().slice(0, 10)}
-              value={newBlockedDate}
-              onChange={(event) => setNewBlockedDate(event.target.value)}
-              className="min-w-0 flex-1 rounded-lg border border-border px-3 py-2 text-sm text-navy"
-            />
-            <Button
-              variant="secondary"
-              disabled={
-                !newBlockedDate || blockedDates.includes(newBlockedDate)
-              }
-              onClick={() => {
-                setBlockedDates((dates) => [...dates, newBlockedDate].sort())
-                setNewBlockedDate("")
-              }}
-            >
-              Block Date
-            </Button>
-          </div>
-        )}
-        {blockedDates.length === 0 ? (
-          <p className="text-sm text-muted">No specific dates are blocked.</p>
-        ) : (
-          <div className="flex flex-wrap gap-2">
-            {blockedDates.map((date) => (
-              <span
-                key={date}
-                className="inline-flex items-center gap-2 rounded-full bg-surface px-3 py-1.5 text-xs text-navy"
+                  </li>
+                ))}
+              </ul>
+            )}
+            {editing && blockedDates.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setClearAllOpen(true)}
+                className="mt-4 w-full rounded-lg border border-red-100 px-3 py-2 text-xs font-semibold text-danger transition hover:bg-red-50"
               >
-                {date}
-                {editing && (
-                  <button
-                    aria-label={`Remove blocked date ${date}`}
-                    onClick={() =>
-                      setBlockedDates((dates) =>
-                        dates.filter((item) => item !== date),
-                      )
-                    }
-                    className="text-danger"
-                  >
-                    ×
-                  </button>
-                )}
-              </span>
-            ))}
-          </div>
-        )}
+                Clear All Blocked Dates
+              </button>
+            )}
+          </section>
+        </div>
       </div>
 
       {editing && (
-        <div className="mt-5 flex flex-wrap gap-3">
-          <Button
-            variant="secondary"
-            disabled={saving}
-            onClick={() => {
-              setEditing(false)
-              setAvailability(originalAvailability)
-              setBlockedDates(allBlockedDates[activeDentistId] ?? [])
-              setSaveError(null)
-              setValidationErrors({})
-            }}
-          >
+        <div className="mt-5 flex flex-col-reverse gap-3 border-t border-border pt-5 sm:flex-row sm:justify-end">
+          <Button variant="secondary" disabled={saving} onClick={resetEditing}>
             Cancel
           </Button>
           <Button variant="primary" disabled={saving} onClick={handleSave}>
             {saving ? "Saving…" : "Save Changes"}
           </Button>
         </div>
+      )}
+      {clearAllOpen && (
+        <ConfirmDialog
+          title="Clear all unavailable dates?"
+          message="All currently listed blocked dates will be removed when you save these schedule changes. This does not change your weekly working hours."
+          confirmLabel="Clear All Dates"
+          cancelLabel="Keep Dates"
+          dangerous
+          onCancel={() => setClearAllOpen(false)}
+          onConfirm={() => {
+            setBlockedDates([])
+            setClearAllOpen(false)
+          }}
+        />
       )}
     </div>
   )

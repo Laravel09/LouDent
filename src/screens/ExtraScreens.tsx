@@ -69,13 +69,9 @@ export function AboutPage({
   )
 }
 
-// ─── Contact Page ─────────────────────────────────────────────────────────────
+// ─── Contact Page & Shared Contact Support ────────────────────────────────────
 
-export function ContactPage({
-  navigate,
-}: {
-  navigate: (s: Screen, p?: any) => void
-}) {
+function ContactSupportContent({ className = "" }: { className?: string }) {
   const [form, setForm] = useState({ name: "", email: "", message: "" })
   const [draftOpened, setDraftOpened] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -90,160 +86,191 @@ export function ContactPage({
     if (!form.message.trim()) nextErrors.message = "Enter a message."
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length > 0) return
+
+    // This intentionally preserves the existing mailto workflow. LouDent does
+    // not submit or store support messages on a server.
     window.location.href = `mailto:info@loudent.com?subject=${encodeURIComponent(`LouDent inquiry from ${form.name}`)}&body=${encodeURIComponent(`${form.message}\n\nReply to: ${form.email}`)}`
     setDraftOpened(true)
   }
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col">
-      <PublicHeader navigate={navigate} activeScreen="contact" />
-      <main className="mx-auto grid w-full max-w-5xl flex-1 gap-6 px-6 py-12 lg:grid-cols-[0.8fr_1.2fr]">
-        <section className="rounded-2xl bg-navy p-7 text-white">
-          <p className="text-sm font-semibold text-blue-300">
-            Clinic Information
-          </p>
-          <h1 className="mt-2 text-3xl font-bold">Contact LouDent</h1>
-          <dl className="mt-8 space-y-5 text-sm">
-            <div>
-              <dt className="text-white/50">Address</dt>
-              <dd className="mt-1 font-medium">Cebu City, Cebu, Philippines</dd>
-            </div>
-            <div>
-              <dt className="text-white/50">Phone</dt>
-              <dd className="mt-1 font-medium">
-                <a href="tel:0325551234">(032) 555-1234</a>
-              </dd>
-            </div>
-            <div>
-              <dt className="text-white/50">Email</dt>
-              <dd className="mt-1 font-medium">
-                <a href="mailto:info@loudent.com">info@loudent.com</a>
-              </dd>
-            </div>
-            <div>
-              <dt className="text-white/50">Clinic Hours</dt>
-              <dd className="mt-1 font-medium">
-                Monday–Friday · 9:00 AM–6:00 PM
-                <br />
-                Saturday · 9:00 AM–3:00 PM
-                <br />
-                Sunday · Closed
-              </dd>
-            </div>
-          </dl>
-        </section>
-        <section className="rounded-2xl border border-border bg-white p-7">
-          <h2 className="text-xl font-bold text-navy">Send an Email</h2>
+    <div className={`grid w-full gap-6 lg:grid-cols-[0.85fr_1.15fr] ${className}`}>
+      <section className="rounded-2xl bg-navy p-6 text-white sm:p-7">
+        <div className="mb-6 flex items-center gap-3">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-blue-200">
+            {icons.services}
+          </span>
+          <div>
+            <p className="text-sm font-semibold text-blue-200">LouDent Dental Clinic</p>
+            <h2 className="text-xl font-bold">Clinic Information</h2>
+          </div>
+        </div>
+        <dl className="space-y-5 text-sm">
+          <div>
+            <dt className="text-white/55">Address</dt>
+            <dd className="mt-1 font-medium">Cebu City, Cebu, Philippines</dd>
+          </div>
+          <div>
+            <dt className="text-white/55">Phone</dt>
+            <dd className="mt-1 font-medium">
+              <a className="hover:text-blue-200" href="tel:0325551234">(032) 555-1234</a>
+            </dd>
+          </div>
+          <div>
+            <dt className="text-white/55">Email</dt>
+            <dd className="mt-1 font-medium">
+              <a className="hover:text-blue-200" href="mailto:info@loudent.com">info@loudent.com</a>
+            </dd>
+          </div>
+          <div>
+            <dt className="text-white/55">Clinic Hours</dt>
+            <dd className="mt-1 font-medium leading-6">
+              Monday–Friday · 9:00 AM–6:00 PM<br />
+              Saturday · 9:00 AM–3:00 PM<br />
+              Sunday · Closed
+            </dd>
+          </div>
+        </dl>
+      </section>
+
+      <section className="rounded-2xl border border-border bg-white p-6 sm:p-7">
+        <div className="mb-5">
+          <h2 className="text-xl font-bold text-navy">Send a Message</h2>
           <p className="mt-1 text-sm text-muted">
-            This opens a prepared draft in your email app; LouDent does not send
-            it automatically.
+            Have a question or concern? Prepare a message for the LouDent team.
           </p>
-          {draftOpened && (
-            <div
-              role="status"
-              className="mt-5 rounded-xl bg-blue-tint px-4 py-3 text-sm text-blue"
-            >
-              If your email app opened, review and send your message there.
-              Nothing has been sent from LouDent.
-            </div>
-          )}
-          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-            <div>
-              <label
-                htmlFor="contact-name"
-                className="mb-1.5 block text-sm font-medium text-navy"
-              >
-                Full Name
-              </label>
-              <input
-                id="contact-name"
-                required
-                value={form.name}
-                onChange={(event) =>
-                  setForm({ ...form, name: event.target.value })
-                }
-                aria-describedby={
-                  errors.name ? "contact-name-error" : undefined
-                }
-                className={`w-full rounded-xl border px-4 py-2.5 text-sm ${
-                  errors.name ? "border-danger" : "border-border"
-                }`}
-              />
-              {errors.name && (
-                <p id="contact-name-error" className="mt-1 text-xs text-danger">
-                  {errors.name}
-                </p>
-              )}
-            </div>
-            <div>
-              <label
-                htmlFor="contact-email"
-                className="mb-1.5 block text-sm font-medium text-navy"
-              >
-                Email Address
-              </label>
-              <input
-                id="contact-email"
-                type="email"
-                required
-                value={form.email}
-                onChange={(event) =>
-                  setForm({ ...form, email: event.target.value })
-                }
-                aria-describedby={
-                  errors.email ? "contact-email-error" : undefined
-                }
-                className={`w-full rounded-xl border px-4 py-2.5 text-sm ${
-                  errors.email ? "border-danger" : "border-border"
-                }`}
-              />
-              {errors.email && (
-                <p
-                  id="contact-email-error"
-                  className="mt-1 text-xs text-danger"
-                >
-                  {errors.email}
-                </p>
-              )}
-            </div>
-            <div>
-              <label
-                htmlFor="contact-message"
-                className="mb-1.5 block text-sm font-medium text-navy"
-              >
-                Message
-              </label>
-              <textarea
-                id="contact-message"
-                required
-                rows={5}
-                value={form.message}
-                onChange={(event) =>
-                  setForm({ ...form, message: event.target.value })
-                }
-                aria-describedby={
-                  errors.message ? "contact-message-error" : undefined
-                }
-                className={`w-full resize-none rounded-xl border px-4 py-2.5 text-sm ${
-                  errors.message ? "border-danger" : "border-border"
-                }`}
-              />
-              {errors.message && (
-                <p
-                  id="contact-message-error"
-                  className="mt-1 text-xs text-danger"
-                >
-                  {errors.message}
-                </p>
-              )}
-            </div>
-            <Button type="submit" variant="primary">
-              Open Email Draft
-            </Button>
-          </form>
-        </section>
+        </div>
+        {draftOpened && (
+          <div
+            role="status"
+            className="mb-5 rounded-xl border border-blue-100 bg-blue-tint px-4 py-3 text-sm text-blue"
+          >
+            If your email app opened, review and send your message there.
+            Nothing has been sent from LouDent.
+          </div>
+        )}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="contact-name" className="mb-1.5 block text-sm font-medium text-navy">
+              Full Name <span className="text-danger">*</span>
+            </label>
+            <input
+              id="contact-name"
+              required
+              autoComplete="name"
+              placeholder="Enter your full name"
+              value={form.name}
+              onChange={(event) => {
+                setForm({ ...form, name: event.target.value })
+                if (errors.name) setErrors((current) => ({ ...current, name: "" }))
+              }}
+              aria-invalid={Boolean(errors.name)}
+              aria-describedby={errors.name ? "contact-name-error" : undefined}
+              className={`w-full rounded-xl border bg-white px-4 py-3 text-sm text-navy outline-none transition focus:border-blue focus:ring-2 focus:ring-blue/15 ${errors.name ? "border-danger" : "border-border"}`}
+            />
+            {errors.name && <p id="contact-name-error" className="mt-1 text-xs text-danger">{errors.name}</p>}
+          </div>
+          <div>
+            <label htmlFor="contact-email" className="mb-1.5 block text-sm font-medium text-navy">
+              Email Address <span className="text-danger">*</span>
+            </label>
+            <input
+              id="contact-email"
+              type="email"
+              required
+              autoComplete="email"
+              placeholder="Enter your email address"
+              value={form.email}
+              onChange={(event) => {
+                setForm({ ...form, email: event.target.value })
+                if (errors.email) setErrors((current) => ({ ...current, email: "" }))
+              }}
+              aria-invalid={Boolean(errors.email)}
+              aria-describedby={errors.email ? "contact-email-error" : undefined}
+              className={`w-full rounded-xl border bg-white px-4 py-3 text-sm text-navy outline-none transition focus:border-blue focus:ring-2 focus:ring-blue/15 ${errors.email ? "border-danger" : "border-border"}`}
+            />
+            {errors.email && <p id="contact-email-error" className="mt-1 text-xs text-danger">{errors.email}</p>}
+          </div>
+          <div>
+            <label htmlFor="contact-message" className="mb-1.5 block text-sm font-medium text-navy">
+              Message <span className="text-danger">*</span>
+            </label>
+            <textarea
+              id="contact-message"
+              required
+              rows={5}
+              placeholder="Type your message here..."
+              value={form.message}
+              onChange={(event) => {
+                setForm({ ...form, message: event.target.value })
+                if (errors.message) setErrors((current) => ({ ...current, message: "" }))
+              }}
+              aria-invalid={Boolean(errors.message)}
+              aria-describedby={errors.message ? "contact-message-error" : undefined}
+              className={`w-full resize-y rounded-xl border bg-white px-4 py-3 text-sm text-navy outline-none transition focus:border-blue focus:ring-2 focus:ring-blue/15 ${errors.message ? "border-danger" : "border-border"}`}
+            />
+            {errors.message && <p id="contact-message-error" className="mt-1 text-xs text-danger">{errors.message}</p>}
+          </div>
+          <Button type="submit" variant="primary" fullWidth>
+            Open Email Draft
+          </Button>
+          <p className="text-xs leading-relaxed text-muted">
+            This opens a prepared draft in your email app. LouDent does not send or store the message automatically.
+          </p>
+        </form>
+      </section>
+    </div>
+  )
+}
+
+export function ContactPage({
+  navigate,
+}: {
+  navigate: (s: Screen, p?: any) => void
+}) {
+  return (
+    <div className="flex min-h-screen flex-col bg-surface">
+      <PublicHeader navigate={navigate} activeScreen="contact" />
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6 sm:py-12">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-navy">Contact LouDent</h1>
+          <p className="mt-1 text-sm text-muted">
+            We're here to help. Reach out to us with any questions or concerns.
+          </p>
+        </div>
+        <ContactSupportContent />
       </main>
       <PublicFooter navigate={navigate} />
+    </div>
+  )
+}
+
+export function AuthenticatedContactScreen({
+  navigate,
+  backScreen,
+}: {
+  navigate: (s: Screen, p?: any) => void
+  backScreen: Screen
+}) {
+  return (
+    <div className="mx-auto w-full max-w-5xl">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <nav aria-label="Breadcrumb" className="mb-3 flex items-center gap-2 text-xs text-muted">
+            <button type="button" onClick={() => navigate(backScreen)} className="hover:text-blue hover:underline">
+              Settings
+            </button>
+            <span aria-hidden="true">/</span>
+            <span className="font-semibold text-navy">Contact LouDent</span>
+          </nav>
+          <h1 className="text-2xl font-bold text-navy">Contact LouDent</h1>
+          <p className="mt-1 text-sm text-muted">We're here to help. Reach out to us with any questions or concerns.</p>
+        </div>
+        <Button variant="secondary" onClick={() => navigate(backScreen)}>
+          ← Back to Settings
+        </Button>
+      </div>
+      <ContactSupportContent />
     </div>
   )
 }
@@ -605,8 +632,8 @@ export function AdminSettingsPage({ navigate }: AdminSettingsPageProps) {
       <SettingsSection title="Help & Support">
         <SettingsRow
           icon={icons.services}
-          label="Contact Support"
-          value="info@loudent.com"
+          label="Contact LouDent"
+          value="Clinic details and email support"
           onClick={() => navigate("contact")}
         />
       </SettingsSection>

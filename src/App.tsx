@@ -41,6 +41,7 @@ import {
 import {
   AboutPage,
   ContactPage,
+  AuthenticatedContactScreen,
   PublicServicesPage,
   SettingsPage,
   AdminSettingsPage,
@@ -889,6 +890,72 @@ export default function App() {
     }
 
     if (screen === "contact") {
+      if (role === "patient") {
+        return (
+          <PatientLayout
+            activeScreen="contact"
+            navigate={navigate}
+            onLogout={handleLogout}
+            profile={profile}
+          >
+            {user && user.role === "patient" && !user.emailVerified && (
+              <VerifyEmailBanner user={user} />
+            )}
+            {dataError && (
+              <div
+                role="alert"
+                className="mb-5 flex flex-wrap items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-danger"
+              >
+                <span>{dataError}</span>
+                <button
+                  onClick={() => loadAppointments()}
+                  className="rounded-lg border border-red-200 bg-white px-3 py-1 text-xs font-semibold hover:bg-red-100"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
+            <AuthenticatedContactScreen
+              navigate={navigate}
+              backScreen="settings"
+            />
+          </PatientLayout>
+        )
+      }
+
+      if (role === "dentist") {
+        return (
+          <AdminLayout
+            activeScreen="contact"
+            navigate={navigate}
+            onLogout={handleLogout}
+            dentist={
+              adminDentists.find((item) => item.id === activeDentistId) ??
+              adminDentists[0]
+            }
+          >
+            {dataError && (
+              <div
+                role="alert"
+                className="mb-5 flex flex-wrap items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-danger"
+              >
+                <span>{dataError}</span>
+                <button
+                  onClick={() => loadAppointments()}
+                  className="rounded-lg border border-red-200 bg-white px-3 py-1 text-xs font-semibold hover:bg-red-100"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
+            <AuthenticatedContactScreen
+              navigate={navigate}
+              backScreen="admin-settings"
+            />
+          </AdminLayout>
+        )
+      }
+
       return <ContactPage navigate={navigate} />
     }
 

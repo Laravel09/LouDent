@@ -58,7 +58,12 @@ const patientNavGroups: NavGroup[] = [
         icon: icons.profile,
         match: ["profile", "edit-profile"],
       },
-      { screen: "settings", label: "Settings", icon: icons.settings },
+      {
+        screen: "settings",
+        label: "Settings",
+        icon: icons.settings,
+        match: ["settings", "contact"],
+      },
     ],
   },
 ]
@@ -349,6 +354,8 @@ export function AdminLayout({
       return ["admin-appointments", "admin-appointment-detail"].includes(
         activeScreen,
       )
+    if (screen === "admin-settings")
+      return ["admin-settings", "contact"].includes(activeScreen)
     return activeScreen === screen
   }
   const go = (screen: Screen) => {
